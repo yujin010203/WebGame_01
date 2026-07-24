@@ -48,6 +48,11 @@
     // 하트는 full/empty 두 장 모두 있을 때만 켠다(한쪽만 있으면 상태 구분이 깨짐)
     Promise.all(['ui/heart-full.png', 'ui/heart-empty.png'].map((f) => probe(base + f)))
       .then((res) => { if (res.every(Boolean)) document.body.classList.add('has-heart-png'); });
+
+    // 버튼은 한 장이면 켠다
+    probe(base + 'ui/button.png').then((ok) => {
+      if (ok) document.body.classList.add('has-button-png');
+    });
   }
   loadDomAssets();
 
