@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>붕어빵 러너 — 수정 설계 문서</title>
+<style>
+  :root {
+    --bg: #f4f6f2;
+    --card: #ffffff;
+    --ink: #2b2f2b;
+    --muted: #6b716a;
+    --line: #e2e6df;
+    --accent: #7a9a6f;
+    --accent-soft: #eef3ea;
+    --code-bg: #f2f0ea;
+    --warn-bg: #fdf6e6;
+    --warn-line: #e9d9a8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 40px 22px 80px; }
+  header {
+    background: linear-gradient(135deg, #8bb07d, #6f9ad1);
+    color: #fff;
+    border-radius: 18px;
+    padding: 30px 32px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.08);
+  }
+  header h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: -.5px; }
+  header .sub { opacity: .92; font-size: 15px; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
+  }
+  .badge {
+    background: rgba(255,255,255,.22);
+    border: 1px solid rgba(255,255,255,.35);
+    padding: 4px 12px; border-radius: 999px; font-size: 13px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.03);
+  }
+  h2 {
+    font-size: 19px; margin: 4px 0 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .num {
+    background: var(--accent); color: #fff;
+    width: 28px; height: 28px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 15px; flex: none;
+  }
+  h3 { font-size: 15px; margin: 18px 0 8px; color: var(--muted); }
+  p { margin: 8px 0; }
+  ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 5px 0; }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px; border-radius: 5px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 13.5px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 13.5px; line-height: 1.55;
+  }
+  .note {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-line);
+    border-radius: 10px;
+    padding: 12px 16px; margin: 12px 0;
+    font-size: 14.5px;
+  }
+  .note b { color: #9a7b1f; }
+  .decision {
+    display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 6px;
+  }
+  .decision .item {
+    background: var(--accent-soft);
+    border: 1px solid #d9e6d2;
+    border-radius: 10px; padding: 12px 16px;
+  }
+  .decision .item b { color: #4f6a45; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; margin-top: 6px; }
+  th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; }
+  th { background: var(--accent-soft); }
+  .status {
+    display: inline-block; background: #fff3d6; color: #8a6d17;
+    border: 1px solid #e9d9a8; border-radius: 999px;
+    padding: 3px 12px; font-size: 13px; font-weight: 600;
+  }
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>🐱🍞 붕어빵 러너 — 수정 설계</h1>
+    <div class="sub">크기 축소 · 무적 이펙트 · PNG 교체 폴더 정리</div>
+    <div class="meta">
+      <span class="badge">작성일 2026-07-24</span>
+      <span class="badge">상태: 설계 합의 대기 중</span>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>배경</h2>
+    <p>
+      현재 고양이 · 붕어빵 조각 · 장애물 스프라이트는 PNG가 아니라
+      <code>js/sprites.js</code>에서 코드로 그려지는 픽셀아트(오프스크린 캔버스)다.
+      표시 배율은 <code>SCALE = 3</code>, 히트박스는 절대 픽셀값으로 정의되어 있다.
+    </p>
+    <h3>결정 사항</h3>
+    <div class="decision">
+      <div class="item"><b>① 크기</b> — 고양이 · 붕어빵 · 장애물 약 30% 축소 (0.7배)</div>
+      <div class="item"><b>② 무적 이펙트</b> — 반짝임 + 무지개 깜빡</div>
+      <div class="item"><b>③ PNG 교체</b> — 자동 폴백 로더 방식 (<code>assets/</code> 폴더)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">1</span>크기 30% 축소</h2>
+    <ul>
+      <li><code>sprites.js</code>에 축소 비율 <code>SIZE = 0.7</code>을 추가하고 표시 배율에 반영.</li>
+      <li>장애물 히트박스 여백은 이미 <code>inset * S</code> 형태라 배율에 자동 반영됨.
+          고양이 · 붕어빵(piece)의 절대값 여백만 <code>SIZE</code> 반영 필요.</li>
+    </ul>
+    <div class="note">
+      <b>⚠ 주의점</b> — 히트박스가 절대 픽셀값(예: 고양이 <code>x+14</code>, <code>w-30</code>)이라
+      크기만 줄이면 판정이 어긋난다. 히트박스 여백도 같은 0.7배로 함께 줄여
+      <b>판정 비율을 유지</b>한다. 겉보기만 작아지고 난이도·판정 느낌은 동일.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">2</span>무적 이펙트 (반짝임 + 무지개 깜빡)</h2>
+    <ul>
+      <li>기존 녹색 오라(<code>_drawAura</code>)는 유지.</li>
+      <li>무적(<code>invincible &gt; 0</code>) 동안 고양이 본체를 무지개 색조(hue 회전)로
+          살짝 물들이고 짧은 주기로 밝게 반짝(깜빡)이게 함.</li>
+      <li>고양이 주위에 작은 별/반짝임 파티클이 이따금 튀어나옴.</li>
+      <li><code>game.js</code> 렌더에서 무적 중일 때 고양이 draw 전후로 hue-rotate 필터 +
+          반짝임 적용. 기존 <code>iframe</code>(피격) 깜빡임과 충돌하지 않게 분리.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">3</span>PNG 교체용 폴더 정리 (자동 폴백 로더)</h2>
+    <pre>assets/
+  cat/        run0.png run1.png run2.png jump.png
+  obstacles/  crate.png cone.png bush.png
+  taiyaki/    red.png cream.png
+  README.md   ← 파일명 규칙 + 권장 크기(px) 안내</pre>
+    <ul>
+      <li>새 파일 <code>js/assets.js</code>: 위 manifest의 PNG 로드 시도.
+        <ul>
+          <li>성공 → 코드 그림 대신 그 PNG 사용.</li>
+          <li>404 → 지금처럼 코드 그림 유지.</li>
+        </ul>
+      </li>
+      <li><code>index.html</code>에 <code>js/assets.js</code> 로드 추가, 페이지 로드 시 자동 프리로드.</li>
+      <li>PNG 미배치 상태에서도 게임은 현재와 <b>100% 동일</b>하게 동작.</li>
+    </ul>
+    <div class="note">
+      <b>핵심 설계</b> — PNG로 바꿔도 표시 크기·히트박스는 코드가 정한 고정 native
+      치수 기준으로 유지한다. PNG 픽셀 크기가 달라도 게임 판정은 흔들리지 않음.
+      이를 위해 장애물이 이미지 픽셀폭(<code>o.canvas.width</code>) 대신
+      <code>nativeW/nativeH</code>를 쓰도록 소폭 정리.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>영향받는 파일</h2>
+    <table>
+      <thead><tr><th>파일</th><th>변경 내용</th></tr></thead>
+      <tbody>
+        <tr><td><code>js/sprites.js</code></td><td><code>SIZE</code> 추가, 장애물에 <code>nativeW/nativeH</code> 노출</td></tr>
+        <tr><td><code>js/entities.js</code></td><td>표시 배율/히트박스에 <code>SIZE</code> 반영, 장애물 native 치수 사용</td></tr>
+        <tr><td><code>js/game.js</code></td><td>무적 시 무지개 + 반짝임 렌더</td></tr>
+        <tr><td><code>js/assets.js</code></td><td><b>신규</b> — PNG manifest + 폴백 로더</td></tr>
+        <tr><td><code>index.html</code></td><td><code>js/assets.js</code> 로드 추가</td></tr>
+        <tr><td><code>assets/</code></td><td><b>신규</b> — 폴더 구조 + README</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>다음 단계</h2>
+    <p><span class="status">설계 합의 대기 중</span></p>
+    <p>사용자 승인 후 구현 진행. 아직 코드는 건드리지 않음.</p>
+  </div>
+
+  <footer>붕어빵 러너 · 수정 설계 문서 · 2026-07-24</footer>
+
+</div>
+</body>
+</html>

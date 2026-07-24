@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>붕어빵 러너 🐱🍞</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="stage">
+      <canvas id="game" width="800" height="400"></canvas>
+
+      <!-- 플레이 중 HUD -->
+      <div id="hud" class="hidden">
+        <div class="hud-row top">
+          <div class="hud-box">
+            <span class="hud-label">SCORE</span>
+            <span id="score">0</span>
+          </div>
+          <div class="hud-box">
+            <span class="hud-label">거리</span>
+            <span id="distance">0</span><span class="unit">m</span>
+          </div>
+          <div id="hearts" class="hearts"></div>
+        </div>
+        <div class="hud-row gauges">
+          <div class="gauge">
+            <span class="gauge-name red">팥</span>
+            <div id="gauge-red" class="gauge-track"></div>
+          </div>
+          <div class="gauge">
+            <span class="gauge-name cream">슈크림</span>
+            <div id="gauge-cream" class="gauge-track"></div>
+          </div>
+        </div>
+        <div id="powerup" class="powerup hidden">✨ 무적! <span id="powerup-time">5</span>s</div>
+      </div>
+
+      <!-- 시작 화면 -->
+      <div id="screen-start" class="overlay">
+        <div class="card">
+          <h1 class="title">붕어빵 러너</h1>
+          <p class="subtitle">배고픈 고양이의 붕어빵 대모험 🐱🍞</p>
+          <canvas id="preview" width="120" height="100" class="preview"></canvas>
+          <div class="howto">
+            <p><b>스페이스바</b> / <b>클릭</b> / <b>터치</b> → 점프</p>
+            <p>한 번 더 누르면 <b>2단 점프!</b></p>
+            <p>🚧 장애물 피하고 🍞 붕어빵 조각 먹기</p>
+          </div>
+          <input id="nickname" type="text" maxlength="10" placeholder="닉네임 (최대 10자)" autocomplete="off" />
+          <button id="btn-start" class="btn">게임 시작</button>
+        </div>
+      </div>
+
+      <!-- 게임 오버 화면 -->
+      <div id="screen-over" class="overlay hidden">
+        <div class="card">
+          <h2 class="over-title">GAME OVER</h2>
+          <div class="final">
+            <div><span class="hud-label">최종 점수</span><b id="final-score">0</b></div>
+            <div><span class="hud-label">달린 거리</span><b id="final-distance">0</b> m</div>
+          </div>
+          <h3 class="rank-title">🏆 TOP 10</h3>
+          <div class="rank-wrap">
+            <table class="rank-table">
+              <thead><tr><th>#</th><th>닉네임</th><th>점수</th></tr></thead>
+              <tbody id="ranking-body"></tbody>
+            </table>
+          </div>
+          <p id="save-status" class="save-status"></p>
+          <button id="btn-restart" class="btn">다시 시작</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase compat SDK (선택: config 설정 시 온라인 랭킹 활성화) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- 게임 스크립트 (로드 순서 중요) -->
+  <script src="js/sprites.js"></script>
+  <script src="js/assets.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/firebase.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+여기에 고양이 PNG를 넣으세요 (권장 24 x 20 px, 투명 배경):
+  run0.png  run1.png  run2.png  jump.png
+자세한 규칙은 상위 폴더의 README.md 참고.
