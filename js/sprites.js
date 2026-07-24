@@ -41,49 +41,44 @@
     x.closePath(); x.fill();
   }
 
-  // ===== 고양이 =====
-  const CAT = {
-    body: '#565a5e', shade: '#3f4245', belly: '#6c7074',
-    pink: '#b98a8f', nose: '#c98a90', eye: '#1f2124',
-  };
-  // 프레임별 다리 세팅 [뒷다리, 앞다리] : {x, len, lift}
-  const LEGS = {
-    run0: [{ x: 6, len: 4, lift: 0 }, { x: 15, len: 2, lift: 0 }],
-    run1: [{ x: 7, len: 3, lift: 0 }, { x: 14, len: 3, lift: 0 }],
-    run2: [{ x: 6, len: 2, lift: 0 }, { x: 16, len: 4, lift: 0 }],
-    jump: [{ x: 7, len: 2, lift: 3 }, { x: 15, len: 2, lift: 3 }],
+  // ===== 고양이 (단색 실루엣 + 검정 눈) =====
+  const CAT = { fur: '#5d6166', eye: '#161618' };
+
+  // 프레임별 포즈: 몸통 상하 바운스(bob) + 앞/뒤 발끝 위치 + 꼬리 끝 높이.
+  // 힙(다리 시작점)은 몸통 아래 고정, 발끝만 앞뒤로 스윙 → 자연스러운 바운딩 런.
+  // 시퀀스 run0→run1→run2: 최대 신전 → 웅크림(체공) → 중간 착지.
+  const POSE = {
+    run0: { bob: 0.4,  back: [5, 18],  front: [19, 17], tail: 8.5 },
+    run1: { bob: -0.8, back: [10, 16], front: [13, 16], tail: 6.5 },
+    run2: { bob: 0,    back: [7, 18],  front: [16, 18], tail: 7.5 },
+    jump: { bob: -0.8, back: [8, 15],  front: [15, 15], tail: 5.5 },
   };
 
+  // 라운드 캡 선 = 다리 한 짝
+  function limb(x, x1, y1, x2, y2, col) {
+    x.strokeStyle = col; x.lineWidth = 3.4; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(x1, y1); x.lineTo(x2, y2); x.stroke();
+  }
+
   function drawCat(x, pose) {
-    const legs = LEGS[pose];
-    // 다리 (몸통 뒤)
-    legs.forEach((l) => {
-      rrect(x, l.x, 15 - l.lift, 2.6, l.len, 1.1, CAT.shade);
-    });
-    // 꼬리
-    x.strokeStyle = CAT.body;
-    x.lineWidth = 2.6;
-    x.lineCap = 'round';
+    const p = POSE[pose];
+    const b = p.bob;
+    // 다리 (몸통 뒤에 먼저) — 힙은 몸통 아래(bob 반영), 발끝만 프레임별 스윙
+    limb(x, 9, 14 + b, p.back[0], p.back[1], CAT.fur);    // 뒷다리
+    limb(x, 15, 14 + b, p.front[0], p.front[1], CAT.fur); // 앞다리
+    // 꼬리 (끝 높이가 프레임마다 흔들림)
+    x.strokeStyle = CAT.fur; x.lineWidth = 2.5; x.lineCap = 'round';
     x.beginPath();
-    x.moveTo(4, 12);
-    x.quadraticCurveTo(0, 10, 1, 5);
+    x.moveTo(5, 12 + b);
+    x.quadraticCurveTo(2, 10.5 + b, 3.5, p.tail + b);
     x.stroke();
-    // 몸통 (날렵하게: 가로로 길고 낮게, 무늬 없음)
-    ell(x, 11, 12.6, 8.2, 4.2, CAT.body);
-    // 배
-    ell(x, 11, 14.2, 5, 2.2, CAT.belly);
-    // 머리
-    circle(x, 17.6, 9, 4.8, CAT.body);
-    // 귀
-    tri(x, 13.4, 5.4, 14.6, 0.6, 16.6, 5, CAT.body);
-    tri(x, 18.2, 5, 20.2, 0.6, 21.6, 5.5, CAT.body);
-    tri(x, 14.4, 4.5, 15.1, 2.2, 16, 4.3, CAT.pink);
-    tri(x, 19.2, 4.3, 20.2, 2.2, 21.1, 4.6, CAT.pink);
-    // 눈
-    circle(x, 18.6, 9, 1.1, CAT.eye);
-    circle(x, 19, 8.6, 0.35, '#e7e7e7');
-    // 코
-    circle(x, 22, 10, 0.85, CAT.nose);
+    // 몸통·머리·귀 (모두 같은 단색, 음영/무늬 없음)
+    ell(x, 11, 12.6 + b, 8.2, 4.2, CAT.fur);                     // 몸통
+    circle(x, 17.6, 9 + b, 4.8, CAT.fur);                        // 머리
+    tri(x, 13.4, 5.4 + b, 14.6, 0.6 + b, 16.6, 5 + b, CAT.fur);  // 왼 귀
+    tri(x, 18.2, 5 + b, 20.2, 0.6 + b, 21.6, 5.5 + b, CAT.fur);  // 오른 귀
+    // 눈 (검정 점, 하이라이트 없음)
+    circle(x, 18.8, 9 + b, 0.62, CAT.eye);
   }
 
   const catNativeW = 24, catNativeH = 20;

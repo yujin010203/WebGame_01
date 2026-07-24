@@ -4,7 +4,7 @@
 (function () {
   const W = 800, H = 400;
   const GROUND_Y = 330;
-  const SPEED_START = 200, SPEED_MAX = 400, ACCEL = 5;
+  const SPEED_START = 200, SPEED_MAX = 520, ACCEL = 3;
   const PX_PER_M = 20; // 화면 이동 px → 거리(m) 환산
 
   function aabb(a, b) {
@@ -236,15 +236,17 @@
         return;
       }
       const g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, '#c6cfc9');
-      g.addColorStop(1, '#d8d4ca');
+      g.addColorStop(0, '#b3e2fb');
+      g.addColorStop(1, '#e6f7ff');
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
-      // 흐릿한 언덕 (연하게, 눈에 안 띄게)
-      ctx.globalAlpha = 0.45;
-      this._hills(ctx, this.bgScroll * 0.15, '#b7c1b8', 300, 90);
-      ctx.globalAlpha = 0.5;
-      this._hills(ctx, this.bgScroll * 0.3, '#c8cdc2', 320, 60);
+      // 겹겹이 굴러가는 언덕 (깊이감 있는 배경)
+      ctx.globalAlpha = 0.4;
+      this._hills(ctx, this.bgScroll * 0.1, '#d7efb6', 288, 110);
+      ctx.globalAlpha = 0.55;
+      this._hills(ctx, this.bgScroll * 0.22, '#c2e39c', 306, 78);
+      ctx.globalAlpha = 0.7;
+      this._hills(ctx, this.bgScroll * 0.36, '#aad57f', 322, 52);
       ctx.globalAlpha = 1;
       this._clouds(ctx);
     }
@@ -262,7 +264,7 @@
     }
 
     _clouds(ctx) {
-      ctx.fillStyle = 'rgba(236,233,224,0.6)';
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
       const off = this.bgScroll * 0.08;
       const clouds = [[120, 70, 26], [360, 48, 32], [620, 90, 22], [770, 60, 28]];
       clouds.forEach(([cx, cy, r]) => {
@@ -287,13 +289,13 @@
         return;
       }
       const gy = GROUND_Y;
-      ctx.fillStyle = '#a6b39c';
+      ctx.fillStyle = '#b9d492';
       ctx.fillRect(0, gy, W, H - gy);
-      ctx.fillStyle = '#93a389';
+      ctx.fillStyle = '#a6c47c';
       ctx.fillRect(0, gy, W, 6);
       // 스크롤되는 바닥 무늬 (속도감)
       const off = this.bgScroll % 40;
-      ctx.fillStyle = '#879577';
+      ctx.fillStyle = '#93b268';
       for (let x = -off; x < W; x += 40) {
         ctx.fillRect(x, gy + 18, 16, 5);
       }

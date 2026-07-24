@@ -5,12 +5,13 @@
 (function () {
   const SIZE = window.Sprites.SIZE;
   const S = window.Sprites.SCALE * SIZE; // 실제 표시 배율 (축소 반영)
+  const CAT_SCALE = 1.2; // 고양이만 추가로 키우는 배율 (표시·판정 동일 적용)
   const GRAVITY = 2600;
 
   class Cat {
     constructor(groundY) {
-      this.w = Sprites.cat.nativeW * S;
-      this.h = Sprites.cat.nativeH * S;
+      this.w = Sprites.cat.nativeW * S * CAT_SCALE;
+      this.h = Sprites.cat.nativeH * S * CAT_SCALE;
       this.x = 70;
       this.groundY = groundY;
       this.reset();
@@ -51,8 +52,8 @@
     }
     hitbox() {
       return {
-        x: this.x + 14 * SIZE, y: this.y + 10 * SIZE,
-        w: this.w - 30 * SIZE, h: this.h - 16 * SIZE,
+        x: this.x + 14 * SIZE * CAT_SCALE, y: this.y + 10 * SIZE * CAT_SCALE,
+        w: this.w - 30 * SIZE * CAT_SCALE, h: this.h - 16 * SIZE * CAT_SCALE,
       };
     }
     draw(ctx) {
