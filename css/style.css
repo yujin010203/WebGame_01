@@ -90,6 +90,8 @@ html, body {
 body.has-heart-png .heart {
   color: transparent;                 /* 이모지 글자 숨김 */
   text-shadow: none;
+  display: inline-block;              /* 이모지 글자 상자 대신 정사각 상자 부여 */
+  width: 1.1em; height: 1.1em;        /* .hearts font-size 기준 정사각 → PNG가 상자 채움 */
   background: center / contain no-repeat url('../assets/ui/heart-full.png');
 }
 body.has-heart-png .heart.lost {
