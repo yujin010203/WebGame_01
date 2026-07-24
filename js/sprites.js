@@ -144,5 +144,8 @@
     nativeW: 20, nativeH: 14,
   };
 
-  window.Sprites = { SCALE, SIZE, cat, obstacles, piece };
+  // ===== PNG 교체용 배경/바닥 보관소 (assets.js가 채움, game.js가 읽음) =====
+  const bg = { sky: null, ground: null };
+
+  window.Sprites = { SCALE, SIZE, cat, obstacles, piece, bg };
 })();

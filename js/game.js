@@ -227,6 +227,14 @@
     }
 
     _drawBackground(ctx) {
+      const sky = Sprites.bg.sky;
+      if (sky) {
+        const off = (((this.bgScroll * 0.15) % sky.width) + sky.width) % sky.width;
+        for (let x = -off; x < W; x += sky.width) {
+          ctx.drawImage(sky, x, 0, sky.width, GROUND_Y); // 하늘 영역(0..330)에 맞춰 세로 채움
+        }
+        return;
+      }
       const g = ctx.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, '#c6cfc9');
       g.addColorStop(1, '#d8d4ca');
@@ -269,6 +277,15 @@
     }
 
     _drawGround(ctx) {
+      const gimg = Sprites.bg.ground;
+      if (gimg) {
+        const gh = H - GROUND_Y; // 70
+        const off = ((this.bgScroll % gimg.width) + gimg.width) % gimg.width;
+        for (let x = -off; x < W; x += gimg.width) {
+          ctx.drawImage(gimg, x, GROUND_Y, gimg.width, gh);
+        }
+        return;
+      }
       const gy = GROUND_Y;
       ctx.fillStyle = '#a6b39c';
       ctx.fillRect(0, gy, W, H - gy);

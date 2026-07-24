@@ -16,6 +16,8 @@
     { file: 'obstacles/bush.png', apply: (img) => { Sprites.obstacles.bush.canvas = img; } },
     { file: 'taiyaki/red.png', apply: (img) => { Sprites.piece.red = img; } },
     { file: 'taiyaki/cream.png', apply: (img) => { Sprites.piece.cream = img; } },
+    { file: 'bg/sky.png', apply: (img) => { Sprites.bg.sky = img; } },
+    { file: 'bg/ground.png', apply: (img) => { Sprites.bg.ground = img; } },
   ];
 
   function loadAssets(base) {
