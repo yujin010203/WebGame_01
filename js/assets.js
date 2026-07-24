@@ -33,5 +33,23 @@
   // 페이지 로드 시 자동 프리로드 (게임 시작 전에 완료됨)
   loadAssets();
 
+  // ===== DOM 자산 프로브: PNG가 있으면 <body>에 클래스 부착 → CSS가 교체 =====
+  function probe(src) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = src;
+    });
+  }
+
+  function loadDomAssets(base) {
+    base = base || 'assets/';
+    // 하트는 full/empty 두 장 모두 있을 때만 켠다(한쪽만 있으면 상태 구분이 깨짐)
+    Promise.all(['ui/heart-full.png', 'ui/heart-empty.png'].map((f) => probe(base + f)))
+      .then((res) => { if (res.every(Boolean)) document.body.classList.add('has-heart-png'); });
+  }
+  loadDomAssets();
+
   window.Assets = { loadAssets, MANIFEST };
 })();

@@ -87,6 +87,17 @@ html, body {
 .heart { color: var(--heart); text-shadow: 2px 2px 0 rgba(51,49,58,0.25); transition: transform .15s; }
 .heart.lost { color: #9a979c; opacity: 0.4; transform: scale(0.85); }
 
+body.has-heart-png .heart {
+  color: transparent;                 /* 이모지 글자 숨김 */
+  text-shadow: none;
+  background: center / contain no-repeat url('../assets/ui/heart-full.png');
+}
+body.has-heart-png .heart.lost {
+  background-image: url('../assets/ui/heart-empty.png');
+  opacity: 1;                         /* 이미지가 상태를 표현하므로 흐림/축소 해제 */
+  transform: none;
+}
+
 .hud-row.gauges {
   margin-top: 10px;
   gap: 14px;
