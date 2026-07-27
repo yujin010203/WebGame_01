@@ -66,8 +66,10 @@
       if (t > 0.12) { t = 0; f = (f + 1) % Sprites.cat.run.length; }
       px.clearRect(0, 0, pc.width, pc.height);
       const img = Sprites.cat.run[f];
-      px.drawImage(img, (pc.width - img.width * s) / 2,
-        (pc.height - img.height * s) / 2 + 6, img.width * s, img.height * s);
+      // 표시 크기는 스프라이트 픽셀 크기가 아니라 native 논리 크기 기준 → 내부 해상도(SS)나 PNG 교체와 무관하게 고정.
+      const dw = Sprites.cat.nativeW * s, dh = Sprites.cat.nativeH * s;
+      px.drawImage(img, (pc.width - dw) / 2,
+        (pc.height - dh) / 2 + 6, dw, dh);
       requestAnimationFrame(anim);
     }
     requestAnimationFrame(anim);
