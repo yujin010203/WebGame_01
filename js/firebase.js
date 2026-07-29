@@ -7,12 +7,12 @@
  */
 (function () {
   const firebaseConfig = {
-    apiKey: 'YOUR_API_KEY',
-    authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    appId: 'YOUR_APP_ID',
+    apiKey: 'AIzaSyCb9W0jv-SqKsuhMaBkHtkiaTusRGZHJh4',
+    authDomain: 'bungeoppang-run.firebaseapp.com',
+    projectId: 'bungeoppang-run',
+    storageBucket: 'bungeoppang-run.firebasestorage.app',
+    messagingSenderId: '369446000542',
+    appId: '1:369446000542:web:9c473013b787e783a9688f',
   };
 
   const LS_KEY = 'cat_runner_rankings';
