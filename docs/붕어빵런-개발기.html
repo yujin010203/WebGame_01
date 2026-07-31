@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>붕어빵런 — 기획부터 트러블슈팅까지</title>
+<style>
+  /* ===== 토큰: 붕어빵 세계에서 뽑은 팔레트 (크러스트 골드 + 팥/하늘/잔디 의미색) ===== */
+  :root{
+    --paper:#F4EEE0; --surface:#FBF7EE; --surface-2:#F0E8D6;
+    --ink:#2B2520; --ink-soft:#6E6355; --ink-faint:#93876F;
+    --line:#E3D8C2; --line-strong:#D3C4A6;
+    --taiyaki:#B0742A; --taiyaki-deep:#8A5A1E;
+    --pat:#B0505A; --sky:#3F93BD; --grass:#6F9C4E;
+    --shadow:0 1px 0 var(--line-strong), 0 14px 36px -22px rgba(60,45,20,.55);
+    --pixel-shadow:3px 3px 0 rgba(138,90,30,.28);
+    color-scheme:light dark;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#161209; --surface:#201A11; --surface-2:#282013;
+      --ink:#F3EAD7; --ink-soft:#B7A889; --ink-faint:#83765D;
+      --line:#342A1B; --line-strong:#453722;
+      --taiyaki:#E0A94E; --taiyaki-deep:#F0C273;
+      --pat:#DE818B; --sky:#6FC0E6; --grass:#9FCB7B;
+      --shadow:0 1px 0 rgba(0,0,0,.4), 0 18px 40px -24px rgba(0,0,0,.8);
+      --pixel-shadow:3px 3px 0 rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#F4EEE0; --surface:#FBF7EE; --surface-2:#F0E8D6;
+    --ink:#2B2520; --ink-soft:#6E6355; --ink-faint:#93876F;
+    --line:#E3D8C2; --line-strong:#D3C4A6;
+    --taiyaki:#B0742A; --taiyaki-deep:#8A5A1E;
+    --pat:#B0505A; --sky:#3F93BD; --grass:#6F9C4E;
+    --shadow:0 1px 0 var(--line-strong), 0 14px 36px -22px rgba(60,45,20,.55);
+    --pixel-shadow:3px 3px 0 rgba(138,90,30,.28);
+  }
+  :root[data-theme="dark"]{
+    --paper:#161209; --surface:#201A11; --surface-2:#282013;
+    --ink:#F3EAD7; --ink-soft:#B7A889; --ink-faint:#83765D;
+    --line:#342A1B; --line-strong:#453722;
+    --taiyaki:#E0A94E; --taiyaki-deep:#F0C273;
+    --pat:#DE818B; --sky:#6FC0E6; --grass:#9FCB7B;
+    --shadow:0 1px 0 rgba(0,0,0,.4), 0 18px 40px -24px rgba(0,0,0,.8);
+    --pixel-shadow:3px 3px 0 rgba(0,0,0,.5);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Apple SD Gothic Neo","Pretendard","Malgun Gothic","Noto Sans KR",system-ui,-apple-system,sans-serif;
+    font-size:17px; line-height:1.72; letter-spacing:-.01em;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:ui-monospace,"D2Coding","SFMono-Regular","Consolas",monospace;}
+
+  .wrap{max-width:940px; margin:0 auto; padding:0 22px;}
+  .col{max-width:680px;}
+
+  a{color:var(--taiyaki-deep); text-decoration:none; border-bottom:1px solid color-mix(in oklab,var(--taiyaki) 45%, transparent);}
+  a:hover{border-bottom-color:var(--taiyaki);}
+  a:focus-visible{outline:2px solid var(--taiyaki); outline-offset:3px; border-radius:2px;}
+
+  h2{font-size:clamp(1.5rem,1.1rem+1.6vw,2rem); line-height:1.15; letter-spacing:-.02em; text-wrap:balance; margin:0;}
+  h3{font-size:1.16rem; letter-spacing:-.015em; margin:0; text-wrap:balance;}
+  p{margin:0;}
+  .lede{max-width:680px; color:var(--ink-soft);}
+
+  .eyebrow{
+    font-family:ui-monospace,"Consolas",monospace; font-size:.72rem; font-weight:700;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--taiyaki-deep);
+    display:inline-flex; align-items:center; gap:.6em;
+  }
+  .eyebrow::before{content:""; width:26px; height:2px; background:var(--taiyaki); display:inline-block;}
+
+  /* ===== 히어로 ===== */
+  header.hero{
+    border-bottom:2px solid var(--line-strong);
+    background:
+      radial-gradient(120% 90% at 82% 0%, color-mix(in oklab,var(--taiyaki) 12%, transparent), transparent 60%),
+      var(--surface);
+  }
+  .hero-inner{padding:clamp(38px,7vw,72px) 0 0;}
+  .kicker{
+    display:inline-flex; align-items:center; gap:.5em; margin-bottom:20px;
+    font-family:ui-monospace,"Consolas",monospace; font-size:.74rem; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft);
+    padding:5px 11px; border:1px solid var(--line-strong); border-radius:100px; background:var(--paper);
+  }
+  .kicker b{color:var(--grass);}
+  h1{
+    margin:0; font-size:clamp(3rem,1.6rem+7vw,6rem); line-height:.94;
+    letter-spacing:-.03em; font-weight:900;
+    text-shadow:var(--pixel-shadow);
+  }
+  h1 .tail{color:var(--taiyaki);}
+  .hero-sub{margin:20px 0 0; font-size:clamp(1.05rem,.98rem+.5vw,1.28rem); color:var(--ink-soft); max-width:620px;}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin:26px 0 4px;}
+  .chip{
+    font-family:ui-monospace,"Consolas",monospace; font-size:.76rem; font-weight:600; letter-spacing:.02em;
+    padding:6px 12px; border-radius:6px; border:1px solid var(--line-strong);
+    background:var(--paper); color:var(--ink-soft);
+  }
+  .live{
+    display:inline-flex; align-items:center; gap:9px; margin-top:22px;
+    padding:9px 15px 9px 12px; border-radius:8px;
+    background:var(--taiyaki); color:#fff8ec; font-weight:700; font-size:.9rem;
+    border:none; box-shadow:0 8px 22px -12px var(--taiyaki-deep);
+  }
+  :root[data-theme="dark"] .live, @media (prefers-color-scheme:dark){}
+  .live .dot{width:9px; height:9px; border-radius:50%; background:#7dffa0; box-shadow:0 0 0 3px rgba(125,255,160,.28);}
+  .live .mono{color:#fff8ec; border:none; font-size:.86rem;}
+
+  /* 코드로 그린 픽셀 씬 (게임의 '모든 그래픽을 코드로' 정체성을 문서에 반영) */
+  .scene-frame{margin-top:clamp(30px,5vw,48px); position:relative;}
+  #scene{
+    display:block; width:100%; height:auto; image-rendering:pixelated;
+    border:2px solid var(--line-strong); border-bottom:none;
+    border-radius:12px 12px 0 0; background:#bfe6f6;
+  }
+  .scene-cap{
+    font-family:ui-monospace,"Consolas",monospace; font-size:.7rem; letter-spacing:.04em;
+    color:var(--ink-faint); text-align:right; padding:7px 4px 0;
+  }
+
+  /* ===== 섹션 ===== */
+  section{padding:clamp(46px,7vw,78px) 0; border-bottom:1px solid var(--line);}
+  .sec-head{display:flex; flex-direction:column; gap:14px; margin-bottom:34px;}
+
+  /* 한눈에 — 스탯 타일 */
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px;}
+  .stat{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 18px 16px;
+    box-shadow:var(--shadow); display:flex; flex-direction:column; gap:3px;
+  }
+  .stat .n{font-size:1.9rem; font-weight:900; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1;}
+  .stat .n small{font-size:.9rem; font-weight:700; color:var(--ink-soft); margin-left:2px;}
+  .stat .l{font-size:.82rem; color:var(--ink-soft);}
+  .stat.acc .n{color:var(--taiyaki);}
+  .stat.pat .n{color:var(--pat);}
+  .stat.sky .n{color:var(--sky);}
+  .stat.grass .n{color:var(--grass);}
+
+  /* 카드 그리드 */
+  .cards{display:grid; gap:16px;}
+  @media(min-width:660px){ .cards.two{grid-template-columns:1fr 1fr;} }
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:22px 22px; box-shadow:var(--shadow);
+  }
+  .card h3{margin-bottom:9px;}
+  .card p{color:var(--ink-soft); font-size:.96rem;}
+  .card + .card{margin-top:0;}
+
+  .tag{
+    display:inline-block; font-family:ui-monospace,"Consolas",monospace; font-size:.68rem; font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:5px; margin-bottom:12px;
+  }
+  .tag.plan{background:color-mix(in oklab,var(--sky) 16%,transparent); color:var(--sky);}
+  .tag.impl{background:color-mix(in oklab,var(--taiyaki) 18%,transparent); color:var(--taiyaki-deep);}
+
+  /* 규칙 리스트 */
+  .rules{display:grid; gap:12px; margin-top:4px;}
+  .rule{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start;
+    padding:14px 16px; background:var(--surface); border:1px solid var(--line); border-radius:10px;}
+  .rule .key{
+    font-family:ui-monospace,"Consolas",monospace; font-size:.78rem; font-weight:700;
+    padding:4px 9px; border-radius:6px; background:var(--surface-2); border:1px solid var(--line-strong);
+    white-space:nowrap; color:var(--ink);
+  }
+  .rule .txt{color:var(--ink-soft); font-size:.95rem;}
+  .rule .txt b{color:var(--ink); font-weight:700;}
+  .swatch{display:inline-block; width:.72em; height:.72em; border-radius:2px; vertical-align:baseline; margin-right:.15em; transform:translateY(1px);}
+
+  /* 아키텍처 테이블 */
+  .table-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow);}
+  table{border-collapse:collapse; width:100%; min-width:520px; background:var(--surface);}
+  th,td{text-align:left; padding:13px 18px; border-bottom:1px solid var(--line); font-size:.92rem; vertical-align:top;}
+  thead th{font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); background:var(--surface-2);}
+  tbody tr:last-child td{border-bottom:none;}
+  td.file{font-family:ui-monospace,"Consolas",monospace; color:var(--taiyaki-deep); font-weight:600; white-space:nowrap;}
+  td.desc{color:var(--ink-soft);}
+
+  /* 코드 블록 */
+  pre{
+    margin:16px 0 0; padding:16px 18px; overflow-x:auto;
+    background:var(--surface-2); border:1px solid var(--line-strong); border-radius:10px;
+    font-family:ui-monospace,"Consolas",monospace; font-size:.82rem; line-height:1.6; color:var(--ink);
+  }
+  pre .c{color:var(--ink-faint);}
+  pre .k{color:var(--pat);}
+  pre .s{color:var(--grass);}
+
+  /* 트러블슈팅 */
+  .ts{display:grid; gap:16px;}
+  @media(min-width:660px){ .ts{grid-template-columns:1fr 1fr;} }
+  .ts-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden;
+    box-shadow:var(--shadow); display:flex; flex-direction:column;
+  }
+  .ts-card .bar{height:5px; background:var(--pat);}
+  .ts-card.cache .bar{background:var(--sky);}
+  .ts-card.build .bar{background:var(--taiyaki);}
+  .ts-card.hit .bar{background:var(--grass);}
+  .ts-body{padding:18px 20px 20px;}
+  .ts-body h3{font-size:1.02rem; margin-bottom:12px;}
+  .pcf{display:grid; gap:9px; margin-top:2px;}
+  .pcf > div{display:grid; grid-template-columns:64px 1fr; gap:10px; font-size:.9rem; align-items:start;}
+  .pcf .lab{font-family:ui-monospace,"Consolas",monospace; font-size:.68rem; font-weight:700; letter-spacing:.06em;
+    text-transform:uppercase; padding-top:3px;}
+  .pcf .p .lab{color:var(--pat);}
+  .pcf .c2 .lab{color:var(--ink-faint);}
+  .pcf .f .lab{color:var(--grass);}
+  .pcf .val{color:var(--ink-soft);}
+  .pcf .f .val{color:var(--ink);}
+  .pcf code{font-family:ui-monospace,"Consolas",monospace; font-size:.84em; background:var(--surface-2);
+    padding:1px 5px; border-radius:4px; border:1px solid var(--line);}
+
+  /* 배포 */
+  .deploy{display:grid; gap:16px;}
+  @media(min-width:660px){ .deploy{grid-template-columns:1fr 1fr;} }
+
+  /* 타임라인 */
+  .timeline{display:grid; gap:0; margin-top:6px;}
+  .tl{display:grid; grid-template-columns:110px 1fr; gap:20px; padding:16px 0; border-top:1px solid var(--line); position:relative;}
+  .tl:first-child{border-top:none;}
+  .tl .when{font-family:ui-monospace,"Consolas",monospace; font-size:.78rem; color:var(--ink-faint); padding-top:2px; white-space:nowrap;}
+  .tl .what h3{font-size:1rem; margin-bottom:3px;}
+  .tl .what p{color:var(--ink-soft); font-size:.9rem;}
+  .tl .hash{font-family:ui-monospace,"Consolas",monospace; font-size:.72rem; color:var(--taiyaki-deep);}
+  @media(max-width:520px){ .tl{grid-template-columns:1fr; gap:5px;} }
+
+  footer{padding:40px 0 60px; color:var(--ink-faint); font-size:.86rem;}
+  footer .mono{color:var(--ink-soft);}
+
+  .note{font-size:.9rem; color:var(--ink-soft); border-left:3px solid var(--taiyaki);
+    padding:2px 0 2px 15px; margin-top:18px;}
+
+  @media (prefers-reduced-motion:reduce){ *{animation:none !important;} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <span class="kicker">개발 회고 · <b>LIVE</b> · 2026</span>
+    <h1>붕어빵<span class="tail">런</span></h1>
+    <p class="hero-sub">배고픈 회색 고양이가 달리며 장애물을 피하고 붕어빵을 먹는 크롬-공룡 스타일 러너.
+      기획 · 구현 · 트러블슈팅의 전 과정을 한 장에 정리했습니다.</p>
+    <div class="chips">
+      <span class="chip">Vanilla JS</span>
+      <span class="chip">HTML5 Canvas</span>
+      <span class="chip">코드 드로잉 픽셀아트</span>
+      <span class="chip">Firebase Firestore</span>
+      <span class="chip">GitHub Pages</span>
+    </div>
+    <a class="live" href="https://yujin010203.github.io/WebGame_01/" target="_blank" rel="noopener">
+      <span class="dot"></span>지금 플레이 &nbsp;<span class="mono">yujin010203.github.io/WebGame_01</span>
+    </a>
+
+    <div class="scene-frame">
+      <canvas id="scene" width="480" height="150" role="img"
+        aria-label="회색 고양이가 스크롤되는 잔디밭을 달리며 붕어빵 조각을 향해 가는 픽셀아트 장면"></canvas>
+      <p class="scene-cap">▲ 이 장면도 게임처럼 &mdash; 이미지 없이 canvas에 코드로 직접 그렸습니다</p>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- 한눈에 -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">한눈에</span>
+        <h2>숫자로 보는 붕어빵런</h2>
+        <p class="lede">규칙과 난이도는 전부 상수로 명시되어 있고, 스프라이트는 한 장의 PNG도 없이 전부 코드로 그려집니다.</p>
+      </div>
+      <div class="stats">
+        <div class="stat acc"><span class="n">8<small>개</small></span><span class="l">바닐라 JS 모듈로 구성</span></div>
+        <div class="stat grass"><span class="n">200→520</span><span class="l">달리기 속도 (px/s), 점점 가속</span></div>
+        <div class="stat pat"><span class="n">3<small>♥</small></span><span class="l">하트 · 피격 시 1.5초 무적</span></div>
+        <div class="stat sky"><span class="n">100<small>%</small></span><span class="l">코드로 그린 픽셀아트</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 기획 -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">1 · 기획</span>
+        <h2>무엇을 만들 것인가</h2>
+        <p class="lede col">"크롬 공룡 게임 같은 걸 만들고 싶다"에서 출발했습니다. 핵심은 <b>배우기 5초, 마스터는 어려운</b>
+          원-버튼 러너. 여기에 붕어빵이라는 한국적 소재와 수집·완성 메커니즘을 얹어 차별점을 만들었습니다.</p>
+      </div>
+      <div class="cards two">
+        <div class="card">
+          <span class="tag plan">Concept</span>
+          <h3>원-버튼 엔들리스 러너</h3>
+          <p>점프 하나로 모든 걸 하는 횡스크롤 러너. 시간이 지날수록 빨라져 자연스럽게 난이도가 오르고,
+            "한 판 더"를 부르는 즉시 재시작 루프를 목표로 했습니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag plan">Hook</span>
+          <h3>피하기 + 모으기 + 완성</h3>
+          <p>단순 회피에 <b>수집 요소</b>를 더했습니다. 붕어빵 조각을 모아 팥붕어빵(보너스 점수)이나
+            슈크림붕어빵(무적)을 완성 &mdash; 위험을 감수하고 조각을 먹을지 판단하게 만드는 리스크·리워드.</p>
+        </div>
+        <div class="card">
+          <span class="tag plan">Identity</span>
+          <h3>코드로 그린 픽셀아트</h3>
+          <p>에셋 파이프라인 없이 시작하려고 스프라이트를 전부 <span class="mono">js/sprites.js</span>의
+            오프스크린 캔버스에 코드로 그렸습니다. 파스텔 오락실 톤으로 통일.</p>
+        </div>
+        <div class="card">
+          <span class="tag plan">Scope</span>
+          <h3>정적 사이트, 의존성 0</h3>
+          <p>빌드 스텝·프레임워크 없이 <span class="mono">index.html</span>만 열면 도는 순수 정적 사이트.
+            온라인 랭킹만 선택적으로 Firebase에 연결 &mdash; 없으면 로컬 랭킹으로 폴백.</p>
+        </div>
+      </div>
+      <p class="note">설계 결정은 구현 전에 문서로 합의했습니다 &mdash;
+        <span class="mono">docs/superpowers/specs/</span> 아래 스프라이트 크기·무적 이펙트·PNG 교체 설계안이 그 기록입니다.</p>
+    </div>
+  </section>
+
+  <!-- 규칙 -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">2 · 게임 규칙</span>
+        <h2>어떻게 노는가</h2>
+        <p class="lede col">모든 규칙은 <span class="mono">js/game.js</span> 상단 상수로 명시됩니다.
+          최종 점수 = 달린 거리(1m = 1점) + 붕어빵 점수.</p>
+      </div>
+      <div class="rules">
+        <div class="rule">
+          <span class="key">Space / ↑ / W / 탭</span>
+          <span class="txt">점프. 공중에서 한 번 더 누르면 <b>2단 점프</b> &mdash; 장애물 스폰 간격은 2단 점프로 넘을 수 있는 최소치를 보장합니다.</span>
+        </div>
+        <div class="rule">
+          <span class="key">🚧 충돌</span>
+          <span class="txt">하트 <b>&minus;1</b>, 1.5초 무적. 하트 3개가 모두 소진되면 게임 오버.</span>
+        </div>
+        <div class="rule">
+          <span class="key">🍞 붕어빵 조각</span>
+          <span class="txt"><b>+100점</b>. 대부분 1개씩, 가끔 2개가 지면 또는 점프 높이에 스폰됩니다.</span>
+        </div>
+        <div class="rule">
+          <span class="key"><span class="swatch" style="background:#b56f74"></span>팥 × 5</span>
+          <span class="txt">팥붕어빵 완성 &mdash; <b>+500점</b> 보너스.</span>
+        </div>
+        <div class="rule">
+          <span class="key"><span class="swatch" style="background:#cdb075"></span>슈크림 × 5</span>
+          <span class="txt">슈크림붕어빵 완성 &mdash; <b>5초 무적</b>. 무적 중엔 장애물을 부수며 통과합니다.</span>
+        </div>
+        <div class="rule">
+          <span class="key">🏆 랭킹</span>
+          <span class="txt">같은 닉네임은 <b>최고 점수 한 줄만</b> 랭킹에 오릅니다(중복 제거).</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 아키텍처 -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">3 · 아키텍처</span>
+        <h2>8개 모듈, 명확한 경계</h2>
+        <p class="lede col">ES 모듈 대신 클래식 스크립트를 써서 파일을 그냥 열어도 돌게 했습니다.
+          각 파일은 하나의 책임만 갖습니다.</p>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>파일</th><th>책임</th></tr></thead>
+          <tbody>
+            <tr><td class="file">index.html</td><td class="desc">화면/HUD 구조, 스크립트 로드 순서</td></tr>
+            <tr><td class="file">css/style.css</td><td class="desc">파스텔 오락실 스타일, 반응형(PC·모바일), PNG 교체용 클래스 훅</td></tr>
+            <tr><td class="file">js/sprites.js</td><td class="desc">코드로 그리는 픽셀아트 &mdash; 고양이/장애물/붕어빵. 표시 배율 SCALE, 축소 비율 SIZE</td></tr>
+            <tr><td class="file">js/entities.js</td><td class="desc">Cat / Obstacle / Piece 클래스. 위치·히트박스·애니메이션</td></tr>
+            <tr><td class="file">js/game.js</td><td class="desc">게임 루프 · 스폰 · 충돌(AABB) · 난이도 · 점수 · 무적 · 렌더</td></tr>
+            <tr><td class="file">js/ui.js</td><td class="desc">HUD, 화면 전환, 랭킹표 렌더</td></tr>
+            <tr><td class="file">js/firebase.js</td><td class="desc">Firestore 온라인 랭킹 + localStorage 폴백</td></tr>
+            <tr><td class="file">js/main.js</td><td class="desc">입력 처리, 시작/재시작 배선</td></tr>
+            <tr><td class="file">js/assets.js</td><td class="desc">PNG 자동 폴백 로더 &mdash; PNG 있으면 사용, 없으면 코드 그림 유지</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 구현 -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">4 · 구현 하이라이트</span>
+        <h2>핵심 시스템</h2>
+        <p class="lede col">고정 프레임이 아닌 <span class="mono">dt</span> 기반 루프라 기기·프레임레이트가 달라도 체감 속도가 일정합니다.</p>
+      </div>
+      <div class="cards two">
+        <div class="card">
+          <span class="tag impl">Loop</span>
+          <h3>델타타임 게임 루프</h3>
+          <p>매 프레임 경과 시간(dt)으로 이동·거리·가속을 계산합니다. 탭 비활성 등으로 dt가 튀면
+            0.05초로 클램프해 순간이동을 막습니다.</p>
+<pre><span class="c">// 속도는 매초 가속, 상한에서 포화</span>
+speed = <span class="k">Math</span>.min(SPEED_MAX, speed + ACCEL*dt);
+distance += (speed*dt) / PX_PER_M; <span class="c">// 20px = 1m</span></pre>
+        </div>
+        <div class="card">
+          <span class="tag impl">Difficulty</span>
+          <h3>자기조정 난이도</h3>
+          <p>장애물 간격을 현재 속도에 반비례로 좁히되, <b>0.55초 하한</b>을 둬서
+            아무리 빨라도 2단 점프로 넘을 수 있는 최소 간격을 보장합니다. 붕어빵은 2.2~4.8초로 드물게.</p>
+        </div>
+        <div class="card">
+          <span class="tag impl">Collision</span>
+          <h3>AABB 충돌 + 무적 분기</h3>
+          <p>사각형 겹침(AABB)으로 판정. 슈크림 무적 중이면 장애물을 부수고, 피격 무적(iframe) 중이면
+            무시하며, 그 외엔 하트를 깎습니다. 조각은 먹으면 게이지가 차고 5개마다 완성 처리.</p>
+        </div>
+        <div class="card">
+          <span class="tag impl">Effect</span>
+          <h3>무적 무지개 이펙트</h3>
+          <p>무적 중 고양이에 <span class="mono">hue-rotate</span> 필터로 무지개 색조를 돌리고
+            밝기를 깜빡이며, 주위에 별 파티클을 뿌립니다. 피격 무적의 깜빡임과는 분리해 충돌을 피했습니다.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <span class="tag impl">Assets</span>
+        <h3>PNG 자동 폴백 로더 &mdash; 판정을 흔들지 않는 교체</h3>
+        <p>나중에 직접 만든 PNG로 갈아끼울 수 있도록 <span class="mono">js/assets.js</span>를 추가했습니다.
+          핵심 설계는 <b>표시 크기·히트박스를 코드가 정한 native 치수로 고정</b>하는 것 &mdash;
+          PNG 픽셀 크기가 달라도 게임 판정은 그대로입니다. 배경·바닥은 캔버스 타일로, 하트·버튼은
+          <span class="mono">&lt;body&gt;</span>에 클래스를 붙여 CSS 배경 이미지로 교체합니다. PNG가 없으면 지금처럼 코드 그림을 씁니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 트러블슈팅 -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">5 · 트러블슈팅</span>
+        <h2>부딪힌 문제와 해결</h2>
+        <p class="lede col">이 환경(Windows + git 자동 줄바꿈 + 정적 게임)에서 반복적으로 발목을 잡은 함정들.
+          증상만 보면 코드 버그로 오진하기 쉬운 것들이라 원인 규명이 관건이었습니다.</p>
+      </div>
+      <div class="ts">
+        <div class="ts-card build">
+          <div class="bar"></div>
+          <div class="ts-body">
+            <h3>CRLF ↔ LF 편집 실패</h3>
+            <div class="pcf">
+              <div class="p"><span class="lab">증상</span><span class="val">merge/checkout 후 편집 도구의 문자열 매칭이 계속 실패</span></div>
+              <div class="c2"><span class="lab">원인</span><span class="val"><code>.gitattributes: * text=auto</code>로 작업 트리 파일이 CRLF가 되어 LF 기준 매칭과 어긋남</span></div>
+              <div class="f"><span class="lab">해결</span><span class="val">편집 전 <code>sed -i 's/\r$//'</code>로 LF 정규화 후 편집. 커밋 시 다시 LF로 정규화되어 기능 영향 없음</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ts-card cache">
+          <div class="bar"></div>
+          <div class="ts-body">
+            <h3>브라우저 캐시 오진</h3>
+            <div class="pcf">
+              <div class="p"><span class="lab">증상</span><span class="val">JS/CSS를 고쳐도 브라우저가 옛 파일을 써서 "코드가 맞는데 안 되는" 것처럼 보임</span></div>
+              <div class="c2"><span class="lab">원인</span><span class="val"><code>python -m http.server</code>가 캐시를 허용</span></div>
+              <div class="f"><span class="lab">해결</span><span class="val"><code>Cache-Control: no-store</code>를 붙인 커스텀 dev 서버로 항상 최신본을 받게 함</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ts-card hit">
+          <div class="bar"></div>
+          <div class="ts-body">
+            <h3>크기 축소 시 히트박스 어긋남</h3>
+            <div class="pcf">
+              <div class="p"><span class="lab">증상</span><span class="val">스프라이트를 30% 줄이자 판정이 실제 그림과 맞지 않음</span></div>
+              <div class="c2"><span class="lab">원인</span><span class="val">히트박스 여백이 절대 픽셀값(예: <code>x+14</code>, <code>w-30</code>)이라 겉모습만 작아짐</span></div>
+              <div class="f"><span class="lab">해결</span><span class="val">여백도 동일하게 <code>SIZE 0.7</code>배 적용 &mdash; 판정 비율 유지, 난이도 체감 동일</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ts-card">
+          <div class="bar"></div>
+          <div class="ts-body">
+            <h3>하트 PNG 찌그러짐</h3>
+            <div class="pcf">
+              <div class="p"><span class="lab">증상</span><span class="val">PNG 하트가 이모지 글리프 폭에 눌려 가로로 찌그러짐</span></div>
+              <div class="c2"><span class="lab">원인</span><span class="val">하트 컨테이너가 이모지 문자 폭을 따라감</span></div>
+              <div class="f"><span class="lab">해결</span><span class="val">하트에 <b>정사각 박스</b>를 부여해 이미지 비율을 지킴</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="note">브라우저를 직접 띄우기 어려운 환경이라, Edge의
+        <span class="mono">--headless --dump-dom</span>으로 DOM·캔버스 로직(예: <span class="mono">canvas.toDataURL</span>)을
+        헤드리스 검증했습니다.</p>
+    </div>
+  </section>
+
+  <!-- 배포 -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">6 · 배포 & 온라인화</span>
+        <h2>어느 기기서나, 공유되는 랭킹</h2>
+        <p class="lede col">"다른 기기에서 테스트하고 싶다 + 랭킹을 기기 간에 공유하고 싶다"는 요구에서
+          GitHub Pages 공개와 Firebase 연결로 이어졌습니다.</p>
+      </div>
+      <div class="deploy">
+        <div class="card">
+          <span class="tag impl">Firestore</span>
+          <h3>온라인 실시간 랭킹</h3>
+          <p><span class="mono">rankings</span> 컬렉션에 점수를 저장/조회합니다. 인증 없이 열되
+            <b>데이터 검증 규칙</b>으로 방어했습니다 &mdash; score는 0 이상 정수, 닉네임은 10자 이하.
+            삭제는 규칙으로 막아 콘솔에서만 수동 삭제됩니다.</p>
+<pre><span class="k">match</span> /rankings/{doc} {
+  <span class="k">allow read</span>: <span class="s">if true</span>;
+  <span class="k">allow write</span>: <span class="s">if</span> score <span class="k">is int</span> &amp;&amp; score &gt;= 0
+    &amp;&amp; nickname <span class="k">is string</span> &amp;&amp; nickname.size() &lt;= 10;
+}</pre>
+          <p style="margin-top:12px"><span class="mono">apiKey</span>는 비밀이 아니라 공개 저장소에 커밋해도 안전합니다.
+            Auth 미사용이라 도메인 허용 설정도 불필요 &mdash; 값 하나라도 <span class="mono">YOUR_</span>로 남으면 로컬 랭킹으로 폴백.</p>
+        </div>
+        <div class="card">
+          <span class="tag impl">GitHub Pages</span>
+          <h3>정적 호스팅 공개</h3>
+          <p>저장소를 Public으로 전환하고 <b>main / (root)</b> 브랜치 배포로 켰습니다.
+            Jekyll 처리를 끄려고 루트에 <span class="mono">.nojekyll</span>을 커밋했습니다.</p>
+          <p style="margin-top:12px">라이브 URL &mdash;<br>
+            <a href="https://yujin010203.github.io/WebGame_01/" target="_blank" rel="noopener">yujin010203.github.io/WebGame_01</a><br>
+            이후 <span class="mono">main</span>에 push하면 약 1분 뒤 자동 갱신됩니다.</p>
+          <p style="margin-top:12px; color:var(--ink-faint); font-size:.86rem">검토했으나 택하지 않은 대안: LAN 바인딩,
+            임시 터널(cloudflared).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 타임라인 -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">7 · 개발 여정</span>
+        <h2>커밋으로 본 진행</h2>
+        <p class="lede col">골격을 먼저 세우고, 설계 문서로 합의한 뒤 PNG 교체 파이프라인을 쌓고,
+          리네이밍·폴리싱을 거쳐 온라인화로 마무리했습니다.</p>
+      </div>
+      <div class="timeline">
+        <div class="tl">
+          <span class="when">07-24</span>
+          <div class="what"><h3>Initial commit</h3>
+            <p>바닐라 JS 러너 골격 &mdash; 8개 모듈, 코드 드로잉 스프라이트, 로컬 랭킹까지. <span class="hash">4a26d15</span></p></div>
+        </div>
+        <div class="tl">
+          <span class="when">07-24</span>
+          <div class="what"><h3>설계 & 계획 문서</h3>
+            <p>크기 축소·무적 이펙트·PNG 교체 설계안 합의 후 구현 착수. <span class="hash">922af9e · f7c79eb</span></p></div>
+        </div>
+        <div class="tl">
+          <span class="when">07-24</span>
+          <div class="what"><h3>PNG 폴백 파이프라인</h3>
+            <p>배경/바닥 → 하트 → 버튼 순으로 PNG 교체 지원 추가. <span class="hash">ce30604 · 8b77ec6 · edb951f</span></p></div>
+        </div>
+        <div class="tl">
+          <span class="when">07-24</span>
+          <div class="what"><h3>하트 정사각 박스 fix</h3>
+            <p>이모지 폭에 찌그러지던 PNG 하트 비율 교정. <span class="hash">de34d5f</span></p></div>
+        </div>
+        <div class="tl">
+          <span class="when">07-2x</span>
+          <div class="what"><h3>"붕어빵런" 리네이밍 + 폴리싱</h3>
+            <p>이름 확정, 비주얼·게임플레이 다듬기. <span class="hash">6a1126c</span></p></div>
+        </div>
+        <div class="tl">
+          <span class="when">07-27</span>
+          <div class="what"><h3>고양이 스프라이트 리드로우</h3>
+            <p>하드엣지 픽셀화 + 다리 리디자인. <span class="hash">f9a9d5b</span></p></div>
+        </div>
+        <div class="tl">
+          <span class="when">07-29</span>
+          <div class="what"><h3>Firebase 온라인 랭킹 연결</h3>
+            <p>실제 config 반영, REST로 저장/조회·규칙 검증 완료. <span class="hash">367337d</span></p></div>
+        </div>
+        <div class="tl">
+          <span class="when">07-29</span>
+          <div class="what"><h3>GitHub Pages 공개</h3>
+            <p><span class="mono">.nojekyll</span> 커밋, 라이브 배포 &mdash; 어느 기기서나 접속·랭킹 공유. <span class="hash">03e60c5</span></p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>붕어빵런</b> 🐱🍞 &mdash; 바닐라 JS + HTML5 Canvas 러너 · 개발 회고 문서</p>
+    <p class="mono" style="margin-top:6px">저장소 yujin010203/WebGame_01 · 라이브 yujin010203.github.io/WebGame_01</p>
+  </div>
+</footer>
+
+<script>
+/* 히어로 픽셀 씬 — 게임처럼 이미지 없이 코드로 그린다.
+   내부 해상도 480×150, image-rendering:pixelated로 확대. */
+(function(){
+  var cv = document.getElementById('scene');
+  if(!cv) return;
+  var ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  var W = cv.width, H = cv.height, GY = 118; // 지면 y
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var C = { // 게임 팔레트에서 그대로 가져온 색
+    sky1:'#bfe6f6', sky2:'#e6f7ff',
+    hill1:'#d7efb6', hill2:'#aad57f',
+    ground:'#b9d492', groundTop:'#a6c47c', dash:'#93b268',
+    cat:'#b9adb2', catDk:'#9c8f96', catEar:'#c9a3ab', eye:'#3a3036',
+    red:'#c47f86', redDk:'#a85d64', cream:'#d9c07f', creamDk:'#c2a558', fin:'#8a5a1e'
+  };
+
+  function taiyaki(x, y, col, dk){
+    // 붕어빵 조각 (12×9 픽셀 근사)
+    ctx.fillStyle = col;
+    ctx.fillRect(x+1,y+2,10,5);
+    ctx.fillRect(x+2,y+1,7,7);
+    ctx.fillRect(x,y+3,1,3);
+    ctx.fillStyle = dk;
+    ctx.fillRect(x+9,y+2,2,5);      // 꼬리쪽 진한면
+    ctx.fillStyle = C.fin;
+    ctx.fillRect(x+3,y,1,1); ctx.fillRect(x+5,y,1,1); // 등지느러미 점
+    ctx.fillStyle = C.eye;
+    ctx.fillRect(x+3,y+3,1,1);      // 눈
+  }
+
+  function cat(x, y, frame){
+    // 회색 고양이 (약 26×20). frame 0/1 다리 애니메이션
+    ctx.fillStyle = C.cat;
+    ctx.fillRect(x+4,y+4,18,11);    // 몸통
+    ctx.fillRect(x+18,y,8,8);       // 머리
+    ctx.fillStyle = C.catEar;
+    ctx.fillRect(x+18,y-3,2,3); ctx.fillRect(x+23,y-3,2,3); // 귀
+    ctx.fillStyle = C.catDk;
+    ctx.fillRect(x+4,y+11,18,4);    // 배 그림자
+    ctx.fillStyle = C.cat;
+    ctx.fillRect(x+1,y+7,4,3);      // 꼬리
+    ctx.fillRect(x,y+4,2,4);
+    ctx.fillStyle = C.eye;
+    ctx.fillRect(x+23,y+2,1,2);     // 눈
+    // 다리 (달리기)
+    ctx.fillStyle = C.catDk;
+    if(frame===0){ ctx.fillRect(x+6,y+15,3,4); ctx.fillRect(x+15,y+15,3,3); }
+    else         { ctx.fillRect(x+6,y+15,3,3); ctx.fillRect(x+15,y+15,3,4); }
+  }
+
+  var t = 0, scroll = 0;
+  function draw(){
+    // 하늘
+    var g = ctx.createLinearGradient(0,0,0,GY);
+    g.addColorStop(0,C.sky1); g.addColorStop(1,C.sky2);
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,GY);
+    // 언덕 (스크롤)
+    function hills(off,color,by,r){
+      ctx.fillStyle = color;
+      var step = r*1.5, start = -(((off%step)+step)%step);
+      for(var x=start; x<W+step; x+=step){ ctx.beginPath(); ctx.arc(x+step/2,by,r,Math.PI,0); ctx.fill(); }
+    }
+    hills(scroll*0.15, C.hill1, GY+8, 34);
+    hills(scroll*0.3,  C.hill2, GY+2, 22);
+    // 구름
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    var co = scroll*0.08;
+    [[90,34,12],[240,24,15],[400,44,11]].forEach(function(c){
+      var x = (c[0]-co) % (W+80); if(x<-80) x+=W+80;
+      ctx.beginPath(); ctx.ellipse(x,c[1],c[2],c[2]*0.6,0,0,Math.PI*2);
+      ctx.ellipse(x+c[2]*0.8,c[1]+2,c[2]*0.7,c[2]*0.5,0,0,Math.PI*2); ctx.fill();
+    });
+    // 지면
+    ctx.fillStyle = C.ground; ctx.fillRect(0,GY,W,H-GY);
+    ctx.fillStyle = C.groundTop; ctx.fillRect(0,GY,W,3);
+    ctx.fillStyle = C.dash;
+    var doff = scroll % 40;
+    for(var x=-doff; x<W; x+=40){ ctx.fillRect(x,GY+10,10,3); }
+    // 붕어빵 조각들 (오른쪽에서 흘러옴)
+    var pxs = [(W- (scroll*1.0)%(W+260)), (W+130-(scroll*1.0)%(W+260))];
+    taiyaki(pxs[0], GY-46, C.red, C.redDk);
+    taiyaki(pxs[1], GY-20, C.cream, C.creamDk);
+    // 고양이 (살짝 통통 튀며 달림)
+    var bob = reduce ? 0 : Math.abs(Math.sin(t*7))*4;
+    var frame = (Math.floor(t*8)%2);
+    cat(40, GY-20-bob, frame);
+  }
+
+  if(reduce){ draw(); return; }
+  var last = performance.now();
+  function loop(now){
+    var dt = Math.min(0.05,(now-last)/1000); last = now;
+    t += dt; scroll += 120*dt;
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
